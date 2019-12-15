@@ -9,7 +9,13 @@ var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds(
 
 console.log(date + ' ' + time);
 
-function subscribe(username, team){
+function getPosts(){
+  T.get('search/tweets',{ q:"@CSGOMatchBot since:2019-12-10", count: 20}, function(err,data,response){
+    console.log(data)
+  })
+}
+getPosts()
+/* function subscribe(username, team){
     T.post('statuses/update', { status: '@' + username + ' You are now subscribed to ' + team + '!'}, function(err, data, response) {
         console.log(data)
       })
@@ -19,7 +25,7 @@ function unsubscribe(username, team){
     T.post('statuses/update', { status: '@' + username + ' You are now unsubscribed to ' + team + '.'}, function(err, data, response) {
         console.log(data)
       })
-}
+} */
 
-subscribe('KeithBrosch', 'Team Liquid');
+//subscribe('Kifflom', 'Team Liquid');
 
