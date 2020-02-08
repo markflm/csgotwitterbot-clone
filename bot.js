@@ -10,7 +10,7 @@ var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds(
 console.log(date + ' ' + time);
 
 function getPosts(){
-  T.get('search/tweets',{ q:"@CSGOMatchBot since:2019-12-10", count: 20}, function(err,data,response){
+  T.get('search/tweets',{ q:"@CSGOMatchBot since:2020-01-10", count: 20}, function(err,data,response){
     console.log(data)
   })
 }
