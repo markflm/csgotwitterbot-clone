@@ -5,41 +5,12 @@ var config = require('./config.js');
 
 var T = new twit(config)
 
-var today = new Date();
-var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-
-//console.log(date + ' ' + time);
-
-/*
-function getPosts(){
-  T.get('search/tweets',{ q:"@CSGOMatchBot since:2020-01-10", count: 20}, function(err,data,response){
-    console.log(data)
-  })
-}
-getPosts()
-/* function subscribe(username, team){
-    T.post('statuses/update', { status: '@' + username + ' You are now subscribed to ' + team + '!'}, function(err, data, response) {
-        console.log(data)
-      })
-}
-
-function unsubscribe(username, team){
-    T.post('statuses/update', { status: '@' + username + ' You are now unsubscribed to ' + team + '.'}, function(err, data, response) {
-        console.log(data)
-      })
-} */
-
-//subscribe('Kifflom', 'Team Liquid');
-
  //stream to pick up incoming tweets
   //declare what the stream is monitoring
  var mentionStream = T.stream('statuses/filter', {track: ['@CSGOMatchbot']})
 
  mentionStream.on('tweet', function(tweet){
    var replyPost = mentionReply(tweet)
-  // console.log(replyPost)
-  // console.log(tweet.user.screen_name);
    T.post('statuses/update',{status: '@' + tweet.user.screen_name + ' - ' + replyPost})
  })
 
