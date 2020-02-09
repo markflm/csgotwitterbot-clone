@@ -102,3 +102,10 @@ dist
 
 # TernJS port file
 .tern-port
+
+# test, note keeping files for mark
+kifflomtests.js
+replytest.js
+
+#API key credentials
+config.js
