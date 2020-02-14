@@ -1,7 +1,9 @@
 var twit = require('twit');
 var config = require('./config.js');
+const scrape = require('./scrape.js');
 
-
+let matchesToTweet = scrape();
+console.log(`matches to tweet: ${scrape.length}`)
 
 var T = new twit(config)
 
