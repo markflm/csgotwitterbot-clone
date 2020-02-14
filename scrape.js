@@ -21,9 +21,20 @@ request('https://www.hltv.org/matches', (error, response, html) => {
         const now = new Date();
         const nowHours = now.getHours();
         const nowMinutes = now.getMinutes();
-        const hoursLeft = hours - nowHours;
-        const minutesLeft = minutes - nowMinutes;
+        let  hoursLeft = 0;
+        let minutesLeft = 0;
 
+        if (hours >= nowHours)
+            hoursLeft = (Number(hours) - Number(nowHours)).toString();
+        else hoursLeft = (24 - Number(nowHours) + Number(hours)).toString(); 
+
+        if (minutes >= minutesLeft)
+            minutesLeft = (Number(minutes) - Number(nowMinutes)).toString();
+        else  minutesLeft = (60 - Number(nowMinutes) + Number(minutes)).toString();
+
+        if (hoursLeft > 5 || (hoursLeft === 5 && minutesLeft > 0)) { // if there are no matches in the next 5 minutes
+            console.log(`The next match does not start for ${hoursLeft} hours and ${minutesLeft} minutes. Re-scrape in 5 minutes`)
+        } else {
         // get team names
         let teams = [];
         nextMatch.find('.team').each((i, el) => {
@@ -33,6 +44,10 @@ request('https://www.hltv.org/matches', (error, response, html) => {
         const team1 = teams[0];
         const team2 = teams[1];
 
+        const link = `hltv.org/${nextMatch.find('a').attr('href')}`;
+
         console.log(`${team1} vs ${team2} starts at ${convertedTime} (${hoursLeft} hours & ${minutesLeft} minutes)`);
+        console.log(link);
+    }
     }
 })
