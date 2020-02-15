@@ -34,7 +34,7 @@ function scrape () {
                 minutesLeft = (Number(minutes) - Number(nowMinutes)).toString();
             else  minutesLeft = (60 - Number(nowMinutes) + Number(minutes)).toString();
 
-            if (hoursLeft > 5 || (hoursLeft === 5 && minutesLeft > 0)) { // if there are no matches in the next 5 minutes
+            if (minutesLeft > 5 || hoursLeft > 0) { // if there are no matches in the next 5 minutes
                 console.log(`The next match does not start for ${hoursLeft} hours and ${minutesLeft} minutes. Re-scrape in 5 minutes`)
             } else {
             // get team names

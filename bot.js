@@ -3,7 +3,7 @@ var config = require('./config.js');
 const scrape = require('./scrape.js');
 
 let matchesToTweet = scrape();
-console.log(`matches to tweet: ${scrape.length}`)
+// console.log(`matches to tweet: ${matchesToTweet}`)
 
 var T = new twit(config)
 
