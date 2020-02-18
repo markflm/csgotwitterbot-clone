@@ -1,5 +1,6 @@
 const request = require('request');
 const cheerio = require('cheerio');
+const axios = require('axios');
 var twit = require('twit');
 var config = require('./config.js');
 
@@ -70,7 +71,7 @@ function scrape () {
 
                     const link = `hltv.org${nextMatch.find('a').attr('href')}`;
 
-                    if (minutesLeft > 5 || hoursLeft > 10) { // if there are no matches in the next 5 minutes
+                    if (minutesLeft > 5 ||  hoursLeft > 0) { // if there are no matches in the next 5 minutes
                         console.log(`The next match (${team1} vs ${team2}) does not start for ${hoursLeft} hours and ${minutesLeft} minutes. Re-scrape in 5 minutes`);
                         iteration = numMatches;
                     } else {
@@ -78,16 +79,42 @@ function scrape () {
                     console.log(`${team1} vs ${team2} starts at ${convertedTime} (${hoursLeft} hours & ${minutesLeft} minutes)`);
                     console.log(link);
                     
-                    // var T = new twit(config)
-                    // T.post('statuses/update', { status: `@keithbrosch ${team1} vs ${team2} starts in ${minutesLeft} minutes. ${link}` }, function(err, data, response) {
-                    //     if (err){
-                    //       console.log(err);
-                    //     }
-                    //   })
+                    let users = [];
+                    axios.get(`https://ancient-badlands-06104.herokuapp.com/teams/${team1}/getusers`)
+                        .then(function (response) {
+                            // handle success
+                            response.data.users.forEach((user) => {
+                                users.push(user);
+                            })
+                        })
+                        .catch(function (error) {
+                            // handle error
+                            console.log(error);
+                        });
+                        axios.get(`https://ancient-badlands-06104.herokuapp.com/teams/${team2}/getusers`)
+                        .then(function (response) {
+                            // handle success
+                            response.data.users.forEach((user) => {
+                                    if (!users.includes(user))
+                                     users.push(user);
+                                })
+                                users.forEach((user) => {
+                                    var T = new twit(config)
+                                    T.post('statuses/update', { status: `@${user} ${team1} vs ${team2} starts in ${minutesLeft} minutes. ${link}` }, function(err, data, response) {
+                                        if (err){
+                                         console.log(err);
+                                        }
+                                    })
+                                })
+                        })
+                        .catch(function (error) {
+                            // handle error
+                            console.log(error);
+                        });
                 }
             }
         }
-    })
+    });
 }
 
 module.exports = scrape;
