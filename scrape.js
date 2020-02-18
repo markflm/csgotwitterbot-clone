@@ -98,13 +98,17 @@ function scrape () {
                                     if (!users.includes(user))
                                      users.push(user);
                                 })
+                                var T = new twit(config)
                                 users.forEach((user) => {
-                                    var T = new twit(config)
-                                    T.post('statuses/update', { status: `@${user} ${team1} vs ${team2} starts in ${minutesLeft} minutes. ${link}` }, function(err, data, response) {
-                                        if (err){
-                                         console.log(err);
-                                        }
-                                    })
+                                    try {
+                                        T.post('statuses/update', { status: `@${user} ${team1} vs ${team2} starts in ${minutesLeft} minutes. ${link}` }, function(err, data, response) {
+                                            if (err){
+                                             console.log(err);
+                                            }
+                                        })
+                                    } catch (error) {
+                                        console.log(error);
+                                    }
                                 })
                         })
                         .catch(function (error) {
