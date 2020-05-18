@@ -2,7 +2,9 @@ var twit = require('twit');
 var config = require('./config.js');
 // const scrape = require('./scrape.js');
 
-// scrape();
+function bot () {
+
+console.log('bot running...');
 
 var T = new twit(config)
 
@@ -59,3 +61,6 @@ return replyText;
   //ongoing connect; 'socket'. can assign events to it
       //i.e. when you're @'d
 //reply function
+}
+
+module.exports = bot;
