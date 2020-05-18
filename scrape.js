@@ -4,7 +4,10 @@ const axios = require('axios');
 var twit = require('twit');
 var config = require('./config.js');
 
-scrape()
+setInterval(() => {
+    console.log('scraping...');
+    scrape();
+}, 300000);
 
 
 
