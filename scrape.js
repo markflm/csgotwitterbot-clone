@@ -68,7 +68,7 @@ function scrape () {
 
                     const link = `hltv.org${nextMatch.find('a').attr('href')}`;
 
-                    if (minutesLeft > 65 ||  hoursLeft > 10) { // if there are no matches in the next 5 minutes
+                    if (minutesLeft > 5 ||  hoursLeft > 0) { // if there are no matches in the next 5 minutes
                         console.log(`The next match (${team1} vs ${team2}) does not start for ${hoursLeft} hours and ${minutesLeft} minutes. Re-scrape in 5 minutes`);
                         iteration = numMatches;
                     } else {
