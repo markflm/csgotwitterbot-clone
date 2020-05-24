@@ -5,13 +5,6 @@ var twit = require('twit');
 var config = require('./config.js');
 const URL = 'https://ancient-badlands-06104.herokuapp.com';
 
-// setInterval(() => {
-//     console.log('scraping...');
-//     scrape();
-// }, 300000);
-
-
-
 function scrape () {
     let iteration = 0;
 
@@ -75,7 +68,7 @@ function scrape () {
 
                     const link = `hltv.org${nextMatch.find('a').attr('href')}`;
 
-                    if (minutesLeft > 5 ||  hoursLeft > 0) { // if there are no matches in the next 5 minutes
+                    if (minutesLeft > 65 ||  hoursLeft > 10) { // if there are no matches in the next 5 minutes
                         console.log(`The next match (${team1} vs ${team2}) does not start for ${hoursLeft} hours and ${minutesLeft} minutes. Re-scrape in 5 minutes`);
                         iteration = numMatches;
                     } else {
@@ -84,7 +77,7 @@ function scrape () {
                     console.log(link);
                     
                     let users = [];
-                    axios.get(`URL/teams/${team1}/getusers`)
+                    axios.get(`${URL}/teams/${team1}/getusers`)
                         .then(function (response) {
                             // handle success
                             response.data.users.forEach((user) => {
@@ -95,7 +88,7 @@ function scrape () {
                             // handle error
                             console.log(error);
                         });
-                        axios.get(`URL/teams/${team2}/getusers`)
+                        axios.get(`${URL}/teams/${team2}/getusers`)
                         .then(function (response) {
                             // handle success
                             response.data.users.forEach((user) => {
@@ -104,6 +97,7 @@ function scrape () {
                                 })
                                 var T = new twit(config)
                                 users.forEach((user) => {
+                                    console.log('in');
                                     try {
                                         T.post('statuses/update', { status: `@${user} ${team1} vs ${team2} starts in ${minutesLeft} minutes. ${link}` }, function(err, data, response) {
                                             if (err){

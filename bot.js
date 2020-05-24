@@ -1,6 +1,5 @@
 const twit = require('twit');
 const config = require('./config.js');
-// const process = require('./process');
 const request = require('request');
 const cheerio = require('cheerio');
 const axios = require('axios');
