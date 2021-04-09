@@ -8,8 +8,13 @@ const URL = 'https://ancient-badlands-06104.herokuapp.com';
 function scrape () {
     let iteration = 0;
 
+    console.log('Making request to https://www.hltv.org/matches');
+
     request('https://www.hltv.org/matches', (error, response, html) => {
         if (!error && response.statusCode === 200) {
+
+            console.log('Successful Request');
+
             const $ = cheerio.load(html);
 
             // get entire div of today's matches
@@ -17,9 +22,13 @@ function scrape () {
             
             let numMatches = todaysMatches.find('.standard-box').length;
 
+            console.log(`There are ${numMatches} matches remaining today`);
+
             while (numMatches > iteration) {
                 // get only the first match up today
                 let firstMatch = todaysMatches.find('.upcoming-match').first();
+
+                console.log(`The soonest match is ${firstMatch}`);
 
                     let nextMatch = firstMatch;
                     let count = iteration;
@@ -39,6 +48,8 @@ function scrape () {
                     let minutes = time.substring(3,5);
                     const convertedTime = `${hours}:${minutes}`;
 
+                    console.log(`The match begins at ${convertedTime}`);
+
                     // compare start time to current time
                     const now = new Date();
                     const nowHours = now.getHours();
@@ -57,6 +68,8 @@ function scrape () {
                         hoursLeft -= 1;
                     }
 
+                    console.log(`Or, in ${hoursLeft} hours and ${minutesLeft} minutes`);
+
                     // get team names
                     let teams = [];
                     nextMatch.find('.team').each((i, el) => {
@@ -66,16 +79,21 @@ function scrape () {
                     const team1 = teams[0];
                     const team2 = teams[1];
 
+                    console.log(`The match is between ${team1} and ${team2}`);
+
                     const link = `hltv.org${nextMatch.find('a').attr('href')}`;
 
+                    console.log(`The HLTV link for the match is ${link}`);
+
                     if (minutesLeft > 5 ||  hoursLeft > 0) { // if there are no matches in the next 5 minutes
-                        console.log(`The next match (${team1} vs ${team2}) does not start for ${hoursLeft} hours and ${minutesLeft} minutes. Re-scrape in 5 minutes`);
+                        console.log('Because this match start in more than 5 minutes, stop and scrape again in 5 minutes');
                         iteration = numMatches;
                     } else {
 
-                    console.log(`${team1} vs ${team2} starts at ${convertedTime} (${hoursLeft} hours & ${minutesLeft} minutes)`);
-                    console.log(link);
+                    console.log('This match begins in less than 5 minutes!');
                     
+                    console.log(`Getting all users who are subscribed to ${team1}`);
+
                     let users = [];
                     axios.get(`${URL}/teams/${team1}/getusers`)
                         .then(function (response) {
@@ -83,11 +101,16 @@ function scrape () {
                             response.data.users.forEach((user) => {
                                 users.push(user);
                             })
+                            console.log(`These are the users subscribed to${team1}: ${JSON.stringify(users)}`);
                         })
                         .catch(function (error) {
                             // handle error
+                            console.log(`Error getting all users subscribed to ${team1}`);
                             console.log(error);
                         });
+
+                        console.log(`Getting all users who are subscribed to ${team2}`);
+
                         axios.get(`${URL}/teams/${team2}/getusers`)
                         .then(function (response) {
                             // handle success
@@ -95,9 +118,9 @@ function scrape () {
                                     if (!users.includes(user))
                                      users.push(user);
                                 })
+                                console.log(`These are the users subscribed to${team1} and ${team2}: ${JSON.stringify(users)}`);
                                 var T = new twit(config)
                                 users.forEach((user) => {
-                                    console.log('in');
                                     try {
                                         T.post('statuses/update', { status: `@${user} ${team1} vs ${team2} starts in ${minutesLeft} minutes. ${link}` }, function(err, data, response) {
                                             if (err){
@@ -115,6 +138,9 @@ function scrape () {
                         });
                 }
             }
+        }
+        else {
+            console.log('Request Failed');
         }
     });
 }
