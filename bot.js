@@ -22,7 +22,7 @@ function process(tweet){
     let postText = tweet.text.replace('@csgomatchbot', '');
     postText = postText.trim();
     postText = postText.replace(/ {1,}/g," ");
-    console.log(`Recieved the tweet \n ${postText} \n from ${username}`);
+    console.log(`Recieved the tweet [${postText}] from ${username}`);
 
     let addTeams = (postText[0] === '+');
     let removeTeams = (postText[0] === '-');
