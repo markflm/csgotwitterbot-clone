@@ -34,11 +34,13 @@ function scrape () {
             // if the soonest match day is not today, disregard all matches
             let numMatches = 0;
             if (todaysDate === soonestMatchDate) {
+                // if soonest match day IS today, get the number of remaining matches today
                 numMatches = soonestMatchDay.find('.upcomingMatch').length;
             }
 
             console.log(`There are ${numMatches} matches remaining today`);
 
+            // we use an iterator here so that, as soon as we find a match that is more than 5 minutes away, we don't bother looping through any later matches
             while (numMatches > iteration) {
                 // get only the first match up today
                 let firstMatch = soonestMatchDay.find('.upcomingMatch').first();
@@ -47,6 +49,8 @@ function scrape () {
 
                     let nextMatch = firstMatch;
                     let count = iteration;
+
+                    // i don't remember what this does
                     while (count > 0) {
                         try {
                             nextMatch = nextMatch.next();
@@ -100,7 +104,7 @@ function scrape () {
 
                     console.log(`The HLTV link for the match is ${link}`);
 
-                    if (minutesLeft > 5 ||  hoursLeft > 0) { // if there are no matches in the next 5 minutes
+                    if (minutesLeft > 5 ||  hoursLeft > 0) { // if there are no matches in the next 5 minutes, exit the loop
                         console.log('Because this match start in more than 5 minutes, stop and scrape again in 5 minutes');
                         iteration = numMatches;
                     } else {
@@ -116,7 +120,7 @@ function scrape () {
                             response.data.users.forEach((user) => {
                                 users.push(user);
                             })
-                            console.log(`These are the users subscribed to${team1}: ${JSON.stringify(users)}`);
+                            console.log(`These are the users subscribed to ${team1}: ${JSON.stringify(users)}`);
                         })
                         .catch(function (error) {
                             // handle error
@@ -133,7 +137,7 @@ function scrape () {
                                     if (!users.includes(user))
                                      users.push(user);
                                 })
-                                console.log(`These are the users subscribed to${team1} and ${team2}: ${JSON.stringify(users)}`);
+                                console.log(`These are the users subscribed to ${team1} and ${team2}: ${JSON.stringify(users)}`);
                                 var T = new twit(config)
                                 users.forEach((user) => {
                                     try {
