@@ -1,6 +1,7 @@
 const request = require('request');
 const cheerio = require('cheerio');
 const axios = require('axios');
+const moment = require('moment');
 var twit = require('twit');
 var config = require('./config.js');
 const URL = 'https://ancient-badlands-06104.herokuapp.com';
@@ -17,18 +18,32 @@ function scrape () {
 
             const $ = cheerio.load(html);
 
-            // get entire div of today's matches
-            const todaysMatches = $('.match-day:first-child');
-            
-            let numMatches = todaysMatches.find('.standard-box').length;
+            // get entire div of soonest match day (may not necessarily be today)
+            let soonestMatchDay = $('.upcomingMatchesSection:first-child');  
+
+            // get todays date
+            const x = new Date();
+            const todaysDate = moment(x).format("YYYY-MM-DD");
+            console.log(`Today's date is ${todaysDate}`);
+
+            // check if the soonest match day is today
+            const y = soonestMatchDay.find('.matchDayHeadline').text().split(' ');
+            const soonestMatchDate = y[y.length - 1];
+            console.log(`Soonest Match date is ${soonestMatchDate}`);
+
+            // if the soonest match day is not today, disregard all matches
+            let numMatches = 0;
+            if (todaysDate === soonestMatchDate) {
+                numMatches = soonestMatchDay.find('.upcomingMatch').length;
+            }
 
             console.log(`There are ${numMatches} matches remaining today`);
 
             while (numMatches > iteration) {
                 // get only the first match up today
-                let firstMatch = todaysMatches.find('.upcoming-match').first();
+                let firstMatch = soonestMatchDay.find('.upcomingMatch').first();
 
-                console.log(`The soonest match is ${firstMatch}`);
+                console.log(`The soonest match is ${firstMatch.text().trim()}`);
 
                     let nextMatch = firstMatch;
                     let count = iteration;
@@ -43,7 +58,7 @@ function scrape () {
                     iteration += 1;
 
                     // get the start time and convert it to EST
-                    const time = nextMatch.find('.time').text().trim(); // time returned is Central European Standard Time (6 hours ahead)
+                    const time = nextMatch.find('.matchTime').text().trim(); // time returned is Central European Standard Time (6 hours ahead)
                     let hours = (parseInt(time.substring(0,2)) - 6).toString(); // this needs to be adjusted to account for games that start between 00:00 and 05:59 cest, because converted hours would be a negative number
                     let minutes = time.substring(3,5);
                     const convertedTime = `${hours}:${minutes}`;
@@ -72,7 +87,7 @@ function scrape () {
 
                     // get team names
                     let teams = [];
-                    nextMatch.find('.team').each((i, el) => {
+                    nextMatch.find('.matchTeamName').each((i, el) => {
                         teams.push($(el).text());
                     });
 
