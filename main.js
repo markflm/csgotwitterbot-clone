@@ -8,4 +8,4 @@ bot();
 setInterval(() => {
     console.log('scraping...');
     scrape();
-}, 30000);
+}, 300000);
