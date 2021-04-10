@@ -67,20 +67,20 @@ function process(tweet){
                         })
                           .catch(function (error) {
                             console.log(error);
-                            setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error subscribing you to ${teams[x]}`});}, 5000)
+                            setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error subscribing you to ${teams[x]}. make sure you spelled the team name exactly as it appears on htlv.org`});}, 5000)
                         });
                     }
                     else {
 
                         console.log('This is not a valid team name');
 
-                        setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error subscribing you to ${teams[x]}`});}, 5000)
+                        setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error subscribing you to ${teams[x]}. make sure you spelled the team name exactly as it appears on htlv.org`});}, 5000)
                     }
                 } else {
 
                     console.log(`Could not make a request to https://www.hltv.org/search?query=${teams[x]}`);
 
-                    setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error subscribing you to ${teams[x]}`});}, 5000)
+                    setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error subscribing you to ${teams[x]}. make sure you spelled the team name exactly as it appears on htlv.org`});}, 5000)
                 }
             })
         }
@@ -91,28 +91,49 @@ function process(tweet){
         let teams = postText.split(',');
 
         console.log(`These are the teams to be removed: ${JSON.stringify(teams)}`);
-        
-        for (let x = 0; x < teams.length; x++) {
-            teams[x] = teams[x].trim();
 
-            console.log(`Unsubscribing ${username} from ${teams[x]}`);
+        // check for wildcard delete
+        if (teams[0].trim() === '*') {
+            console.log(`Deleting all subscriptions for ${username}`);
 
             axios.post(`${URL}/user/${username}/removeTeams`, {
-                'teamsToRemove': [teams[x]],
               })
               .then(function (response) {
 
-                console.log(`Successfully unsubscribed ${username} from ${teams[x]}`);
+                console.log(`Successfully unsubscribed ${username} from all teams`);
 
-                setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} you are unsubscribed to ${teams[x]}`});}, 5000);
+                setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} you are unsubscribed to all teams.`});}, 5000);
             })
               .catch(function (error) {
 
                 console.log(`Could not unsubscribe ${username} from ${teams[x]}`);
 
                 console.log(error);
-                setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error unsubscribing you to ${teams[x]}`});}, 5000)
+                setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error unsubscribing you to all teams`});}, 5000)
             });
+        } else {
+            for (let x = 0; x < teams.length; x++) {
+                teams[x] = teams[x].trim();
+
+                console.log(`Unsubscribing ${username} from ${teams[x]}`);
+
+                axios.post(`${URL}/user/${username}/removeTeams`, {
+                    'teamsToRemove': [teams[x]],
+                })
+                .then(function (response) {
+
+                    console.log(`Successfully unsubscribed ${username} from ${teams[x]}`);
+
+                    setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} you are unsubscribed to ${teams[x]}`});}, 5000);
+                })
+                .catch(function (error) {
+
+                    console.log(`Could not unsubscribe ${username} from ${teams[x]}`);
+
+                    console.log(error);
+                    setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error unsubscribing you to ${teams[x]}`});}, 5000)
+                });
+            }
         }
     }
     console.log('---------------------------')
