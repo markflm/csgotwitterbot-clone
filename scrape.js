@@ -23,13 +23,14 @@ function scrape () {
 
             // get todays date
             const x = new Date();
+            x.setHours(x.getHours() + 6);
             const todaysDate = moment(x).format("YYYY-MM-DD");
-            console.log(`Today's date is ${todaysDate}`);
+            console.log(`Today's date (CEST) is ${todaysDate}`);
 
             // check if the soonest match day is today
             const y = soonestMatchDay.find('.matchDayHeadline').text().split(' ');
             const soonestMatchDate = y[y.length - 1];
-            console.log(`Soonest Match date is ${soonestMatchDate}`);
+            console.log(`Soonest Match date (CEST) is ${soonestMatchDate}`);
 
             // if the soonest match day is not today, disregard all matches
             let numMatches = 0;
@@ -45,8 +46,6 @@ function scrape () {
                 // get only the first match up today
                 let firstMatch = soonestMatchDay.find('.upcomingMatch').first();
 
-                console.log(`The soonest match is ${firstMatch.text().trim()}`);
-
                     let nextMatch = firstMatch;
                     let count = iteration;
 
@@ -61,35 +60,7 @@ function scrape () {
                     }
                     iteration += 1;
 
-                    // get the start time and convert it to EST
-                    const time = nextMatch.find('.matchTime').text().trim(); // time returned is Central European Standard Time (6 hours ahead)
-                    let hours = (parseInt(time.substring(0,2)) - 6).toString(); // this needs to be adjusted to account for games that start between 00:00 and 05:59 cest, because converted hours would be a negative number
-                    let minutes = time.substring(3,5);
-                    const convertedTime = `${hours}:${minutes}`;
-
-                    console.log(`The match begins at ${convertedTime}`);
-
-                    // compare start time to current time
-                    const now = new Date();
-                    const nowHours = now.getHours();
-                    const nowMinutes = now.getMinutes();
-                    let  hoursLeft = 0;
-                    let minutesLeft = 0;
-
-                    if (hours >= nowHours)
-                        hoursLeft = (Number(hours) - Number(nowHours)).toString();
-                    else hoursLeft = (24 - Number(nowHours) + Number(hours)).toString(); 
-
-                    if (minutes >= nowMinutes)
-                        minutesLeft = (Number(minutes) - Number(nowMinutes)).toString();
-                    else  {
-                        minutesLeft = (60 - Number(nowMinutes) + Number(minutes)).toString();
-                        hoursLeft -= 1;
-                    }
-
-                    console.log(`Or, in ${hoursLeft} hours and ${minutesLeft} minutes`);
-
-                    // get team names
+                     // get team names
                     let teams = [];
                     nextMatch.find('.matchTeamName').each((i, el) => {
                         teams.push($(el).text());
@@ -98,14 +69,45 @@ function scrape () {
                     const team1 = teams[0];
                     const team2 = teams[1];
 
-                    console.log(`The match is between ${team1} and ${team2}`);
+                    console.log(`The next match is between ${team1} and ${team2}`);
+
+
+                    // compare start time to current time
+                    const now = new Date();
+                    now.setHours(now.getHours() + 6);
+                    console.log(`It is currently ${moment(now).format('HH:mm')}  CEST`);
+                    const nowHours = now.getHours();
+                    const nowMinutes = now.getMinutes();
+                    let  hoursLeft = 0;
+                    let minutesLeft = 0;
+
+                    // get the start time (CEST)
+                    const time = nextMatch.find('.matchTime').text().trim(); // time returned is Central European Standard Time
+                    let hours = (parseInt(time.substring(0,2))).toString();
+                    let minutes = time.substring(3,5);
+                    const convertedTime = `${hours}:${minutes}`;
+
+                    console.log(`The match begins at ${convertedTime} CEST`);
+
+                    if (hours >= nowHours)
+                        hoursLeft = (Number(hours) - Number(nowHours)).toString();
+                    else hoursLeft = (24 - Number(nowHours) + Number(hours)).toString(); 
+
+                    if (minutes >= nowMinutes)
+                        minutesLeft = (Number(minutes) - Number(nowMinutes)).toString();
+                    else  {
+                        minutesLeft = (60 - (Number(nowMinutes) - Number(minutes)).toString());
+                        hoursLeft -= 1;
+                    }
+
+                    console.log(`Or, in ${hoursLeft} hours and ${minutesLeft} minutes`);
 
                     const link = `hltv.org${nextMatch.find('a').attr('href')}`;
 
                     console.log(`The HLTV link for the match is ${link}`);
 
                     if (minutesLeft > 5 ||  hoursLeft > 0) { // if there are no matches in the next 5 minutes, exit the loop
-                        console.log('Because this match start in more than 5 minutes, stop and scrape again in 5 minutes');
+                        console.log('Because this match starts in more than 5 minutes, stop and scrape again in 5 minutes');
                         iteration = numMatches;
                     } else {
 
