@@ -5,6 +5,7 @@ const moment = require('moment');
 var twit = require('twit');
 var config = require('./config.js');
 const URL = 'https://ancient-badlands-06104.herokuapp.com';
+const apiHeaders = require('./apiHeaders.js');
 
 function scrape () {
     let iteration = 0;
@@ -116,9 +117,11 @@ function scrape () {
                     console.log(`Getting all users who are subscribed to ${team1}`);
 
                     let users = [];
-                    axios.get(`${URL}/teams/${team1}/getusers`)
+                    axios.get(`${URL}/teams/${team1}/getusers`, apiHeaders)
                         .then(function (response) {
                             // handle success
+                            console.log(response.data);
+
                             response.data.users.forEach((user) => {
                                 users.push(user);
                             })
@@ -132,9 +135,11 @@ function scrape () {
 
                         console.log(`Getting all users who are subscribed to ${team2}`);
 
-                        axios.get(`${URL}/teams/${team2}/getusers`)
+                        axios.get(`${URL}/teams/${team2}/getusers`, apiHeaders)
                         .then(function (response) {
                             // handle success
+                            console.log(response.data);
+
                             response.data.users.forEach((user) => {
                                     if (!users.includes(user))
                                      users.push(user);

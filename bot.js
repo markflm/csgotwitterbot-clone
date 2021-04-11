@@ -5,6 +5,8 @@ const cheerio = require('cheerio');
 const axios = require('axios');
 const URL = 'https://ancient-badlands-06104.herokuapp.com';
 const T = new twit(config)
+const apiHeaders = require('./apiHeaders.js');
+const { post } = require('request');
 
 function bot () {
 
@@ -24,16 +26,42 @@ function process(tweet){
     postText = postText.replace(/ {1,}/g," ");
     console.log(`Recieved the tweet [${postText}] from ${username}`);
 
+    let getMyTeams = postText === '!teams';
     let addTeams = (postText[0] === '+');
     let removeTeams = (postText[0] === '-');
 
+    console.log(`Get my teams: ${getMyTeams}`);
     console.log(`Adding Teams: ${addTeams}`);
     console.log(`Removing Teams: ${removeTeams}`);
     console.log(`Invalid Syntax: ${!addTeams && !removeTeams}`);
 
-    if (!addTeams && !removeTeams) { // if the first character isn't + or -
+    if (!addTeams && !removeTeams && !getMyTeams) { // if the first character isn't + or -
         console.log(`Found Invalid Syntax`);
         setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} Invalid command. Please read the documentation in my bio`});}, 5000)
+    }
+    else if (getMyTeams){
+        // get this user's subscribed teams
+        console.log(`Getting all teams for ${username} `)
+
+        const myTeams = [];
+
+        axios.get(`${URL}/user/${username}/getteams`, apiHeaders)
+        .then(function (response) {
+            // handle success
+            console.log(response.data);
+                            
+            response.data.teams.forEach((team) => {
+                myTeams.push(team);
+            })
+            console.log(`These are the teams that ${username} is subscribed to: ${JSON.stringify(myTeams)}`);
+
+            setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} you are subscribed to ${myTeams.join(", ")}`});}, 5000);
+        })
+        .catch(function (error) {
+            // handle error
+            console.log(`Error getting all users subscribed to ${team1}`);
+            console.log(error);
+        });
     }
     else if (addTeams) //if any teams are to be added
     {
@@ -61,8 +89,9 @@ function process(tweet){
 
                         axios.post(`${URL}/user/${username}/addteams`, {
                             'teamsToAdd': [teams[x]],
-                          })
+                          }, apiHeaders)
                           .then(function (response) {
+                            console.log(response.data);
                             setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} you are now subscribed to ${teams[x]}`});}, 5000);
                         })
                           .catch(function (error) {
@@ -97,9 +126,9 @@ function process(tweet){
             console.log(`Deleting all subscriptions for ${username}`);
 
             axios.post(`${URL}/user/${username}/removeTeams`, {
-              })
+              }, apiHeaders)
               .then(function (response) {
-
+                console.log(response.data);
                 console.log(`Successfully unsubscribed ${username} from all teams`);
 
                 setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} you are unsubscribed to all teams.`});}, 5000);
@@ -119,9 +148,10 @@ function process(tweet){
 
                 axios.post(`${URL}/user/${username}/removeTeams`, {
                     'teamsToRemove': [teams[x]],
-                })
+                }, apiHeaders)
                 .then(function (response) {
-
+                    
+                    console.log(response.data);
                     console.log(`Successfully unsubscribed ${username} from ${teams[x]}`);
 
                     setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} you are unsubscribed to ${teams[x]}`});}, 5000);
