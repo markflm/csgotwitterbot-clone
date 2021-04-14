@@ -4,7 +4,7 @@ const axios = require('axios');
 const moment = require('moment');
 var twit = require('twit');
 var config = require('./config.js');
-const URL = 'https://ancient-badlands-06104.herokuapp.com';
+const URL = process.env.API_URL;
 const apiHeaders = require('./apiHeaders.js');
 
 function scrape () {
