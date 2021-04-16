@@ -5,7 +5,7 @@ const bot = require('./bot')
 bot();
 
 // call hltv scrape function ever 5 minutes
-setInterval(() => {
+setInterval(() => { 
     console.log('scraping...');
     scrape();
 }, 300000);

@@ -7,6 +7,8 @@ const URL = global.process.env.API_URL; //have to specify global because functio
 const T = new twit(config)
 const apiHeaders = require('./apiHeaders.js');
 const { post } = require('request');
+const helpers = require('./helpers.js')
+const httpSvc = require('./httpService.js')
 
 function bot () {
 
@@ -17,6 +19,8 @@ function bot () {
     mentionStream.on('tweet', function(tweet){
         process(tweet);
     })
+    //process(helpers.returnTestTweet()) //simulates one run of the bot script with a hardcoded tweet. 
+                                         //uncomment this & comment out mentionStream to use
 }
 
 function process(tweet){
@@ -70,49 +74,38 @@ function process(tweet){
 
         console.log(`These are the teams to be added: ${JSON.stringify(teams)}`);
         
-        for (let x = 0; x < teams.length; x++) {
-            // check if a team with that name exists on hltv
-            teams[x] = teams[x].trim();
+        let formattedTeams = teams.map(helpers.formatAsTeamObj);
 
-            console.log(`Checking if ${teams[x]} exists`);
+        const hltvPromises = [];
+        let confirmedTeams = []; //stores any team(s) that require and pass an hltv check
+        
+        httpSvc.addTeamsPost(URL, username, formattedTeams, false) //first pass; call returns any unconfirmed teams
+        .then((result)=>{
 
-            request(`https://www.hltv.org/search?query=${teams[x]}`, (error, response, html) => {
-                if (!error && response.statusCode === 200) {
-                    const $ = cheerio.load(html);
-                    const teamsDiv = $('.team-logo');
+            let unconfirmedTeams = result.data.teamsUnconfirmed;
+           
+            if(unconfirmedTeams?.length <= 0) return; //skip hltv check if no unconfirmed teams
+            
+            for (let x = 0; x < unconfirmedTeams.length; x++) {
+                var team = unconfirmedTeams[x].Team;
+                team = team.trim();
+                
+                console.log(`Checking if ${team} exists`);
 
-                    console.log(`Request made to https://www.hltv.org/search?query=${teams[x]}`);
+                hltvPromises.push(httpSvc.checkHltv(team))
 
-                    if (teamsDiv && teamsDiv.length && teamsDiv[0].attribs && teamsDiv[0].attribs.title && teamsDiv[0].attribs.title.toString().toUpperCase() === teams[x].toString().toUpperCase()) {
+        
+            }
 
-                        console.log('This is a valid team name');
+        } ).then( _ => {
+            if(hltvPromises.length <= 0) return //if no promises, there's no unconfirmed teams. exit;
+            confirmedTeams = Promise.all(hltvPromises)
+                .then((result)=> {     
+                    console.log(`Confirmed new team(s) exist: + ${JSON.stringify(result)}`)
+                    httpSvc.addTeamsPost(URL, username, result, true)
+                })
+        } )
 
-                        axios.post(`${URL}/user/${username}/addteams`, {
-                            'teamsToAdd': [teams[x]],
-                          }, apiHeaders)
-                          .then(function (response) {
-                            console.log(response.data);
-                            setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} you are now subscribed to ${teams[x]}`});}, 5000);
-                        })
-                          .catch(function (error) {
-                            console.log(error);
-                            setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error subscribing you to ${teams[x]}. make sure you spelled the team name exactly as it appears on htlv.org`});}, 5000)
-                        });
-                    }
-                    else {
-
-                        console.log('This is not a valid team name');
-
-                        setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error subscribing you to ${teams[x]}. make sure you spelled the team name exactly as it appears on htlv.org`});}, 5000)
-                    }
-                } else {
-
-                    console.log(`Could not make a request to https://www.hltv.org/search?query=${teams[x]}`);
-
-                    setTimeout(function() {T.post('statuses/update',{status: `@${tweet.user.screen_name} there was an error subscribing you to ${teams[x]}. make sure you spelled the team name exactly as it appears on htlv.org`});}, 5000)
-                }
-            })
-        }
     }
     else if (removeTeams) //if any teams are to be removed
     {
