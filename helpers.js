@@ -34,7 +34,11 @@ const formatReply = (username, action, teams) => {
 		if (teams?.length == 0) {
 			return (replyString += ' you did not provide any teams to remove');
 		}
+		if (teams[0] === '*') {
+			return (replyString += ` you've been unsubscribed from all teams`);
+		}
 		replyString += ' you are no longer subscribed to ';
+
 		return (replyString += populateReply(replyString, myTeams));
 	}
 	if ((action = 'getUsersForTeamMatch')) {
@@ -61,96 +65,7 @@ const populateReply = (reply, teams, action) => {
 	return teamsTxtTruncated;
 };
 
-const returnTestTweet = (tweetType, username, name) => {
-	let tweet;
-	if (tweetType == '+unconfirmed') {
-		tweet = {
-			//text: `@csgomatchbot +Carbon, Triggers Down, Big Chillin`,
-			text: '+Mythic',
-			user: {
-				//big chillin is apparently a real team, will need to delete it from database or pass unsubscribed user for this to always be unconfirmed
 
-				name: name,
-				screen_name: username,
-			},
-		};
-	}
-	if (tweetType == '+empty') {
-		tweet = {
-			text: `@csgomatchbot +`,
-			user: {
-				name: name,
-				screen_name: username,
-			},
-		};
-	}
-	if (tweetType == '+confirmed') {
-		tweet = {
-			text: `@csgomatchbot +Dignitas, tyloo`,
-			user: {
-				name: name,
-				screen_name: username,
-			},
-		};
-	}
-	if (tweetType == '+invalid') {
-		tweet = {
-			text: `@csgomatchbot +*dd, cool adam`,
-			user: {
-				name: name,
-				screen_name: username,
-			},
-		};
-	}
-	if (tweetType == '-some') {
-		tweet = {
-			text: `@csgomatchbot -Astralis, Liquid`,
-			user: {
-				name: name,
-				screen_name: username,
-			},
-		};
-	}
-    if (tweetType == '-empty') {
-		tweet = {
-			text: `@csgomatchbot -`,
-			user: {
-				name: name,
-				screen_name: username,
-			},
-		};
-	}
-	if (tweetType == '-all') {
-		tweet = {
-			text: `@csgomatchbot -*`,
-			user: {
-				name: name,
-				screen_name: username,
-			},
-		};
-	}
-	if (tweetType == '!teams') {
-		tweet = {
-			text: `@csgomatchbot !teams`,
-			user: {
-				name: name,
-				screen_name: username,
-			},
-		};
-	}
-
-	if (tweetType == 'other') {
-		tweet = {
-			text: `@csgomatchbot juan deage`,
-			user: {
-				name: name,
-				screen_name: username,
-			},
-		};
-	}
-
-	return tweet;
-};
 exports.formatAsTeamObj = jsonifyTeamsDetailed;
-exports.returnTestTweet = returnTestTweet;
+
 exports.formatReply = formatReply;
