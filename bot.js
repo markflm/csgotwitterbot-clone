@@ -20,7 +20,7 @@ function bot() {
 	mentionStream.on('tweet', function (tweet) {
 		process(tweet);
 	});
-	//process(helpers.returnTestTweet()) //simulates one run of the bot script with a hardcoded tweet.
+	//process(helpers.returnTestTweet('-empty', 'kifflom', 'mark kflm')); //simulates one run of the bot script with a hardcoded tweet.
 	//uncomment this & comment out mentionStream to use
 }
 
@@ -38,8 +38,9 @@ function process(tweet) {
 	console.log(`Get my teams: ${getMyTeams}`);
 	console.log(`Adding Teams: ${addTeams}`);
 	console.log(`Removing Teams: ${removeTeams}`);
-	console.log(`Invalid Syntax: ${!addTeams && !removeTeams}`);
+	console.log(`Invalid Syntax: ${!addTeams && !removeTeams && !getMyTeams}`);
 
+	let replyString = ''; //holds outgoing reply tweet
 	if (!addTeams && !removeTeams && !getMyTeams) {
 		// if the first character isn't +, -, or the "!teams" command
 		console.log(`Found Invalid Syntax`);
@@ -54,52 +55,64 @@ function process(tweet) {
 
 		const myTeams = [];
 
-		axios
-			.get(`${URL}/user/${username}/getteams`, apiHeaders)
-			.then(function (response) {
-				// handle success
-				console.log(response.data);
-
-				response.data.teams.forEach(team => {
-					myTeams.push(team);
-				});
-				console.log(
-					`These are the teams that ${username} is subscribed to: ${JSON.stringify(
-						myTeams
-					)}`
-				);
-
+		httpSvc
+			.getTeamsForUser(URL, username)
+			.then((result) => {
+				const teams = result?.data?.teams;
+				console.log(`These are the teams that ${username} is subscribed to: ${JSON.stringify(teams)}`);
+				replyString = helpers.formatReply(username, 'getTeamsForUser', teams);
 				setTimeout(function () {
 					T.post('statuses/update', {
-						status: `@${
-							tweet.user.screen_name
-						} you are subscribed to ${myTeams.join(', ')}`,
+						status: replyString,
 					});
 				}, 5000);
 			})
 			.catch(function (error) {
 				// handle error
-				console.log(`Error getting all users subscribed to ${team1}`);
+				console.log(`Error getting all teams for user ${username}`);
 				console.log(error);
 			});
 	} else if (addTeams) {
 		//if any teams are to be added
 		postText = postText.substring(1, postText.length);
 		let teams = postText.split(',');
+		teams = teams.map((x) => x.trim());
+		if (postText.length == 0) {
+			//will be true for a tweet like "@csgomatchbot + "
+			let teams = []; //generate empty teams object to comply with formatReply standards. 'real' teams object has a length of 1 no matter what
+			replyString = helpers.formatReply(username, 'add', teams);
+			console.log(`sending tweet: ${replyString}`);
+			setTimeout(function () {
+				T.post('statuses/update', {
+					status: replyString,
+				});
+			}, 5000);
+			return;
+		}
 
 		console.log(`These are the teams to be added: ${JSON.stringify(teams)}`);
 
 		let formattedTeams = teams.map(helpers.formatAsTeamObj);
 
-		const hltvPromises = [];
+		const hltvPromises = []; //promises for hltv team existence checks
 		let confirmedTeams = []; //stores any team(s) that require and pass an hltv check
 
 		httpSvc
 			.addTeamsPost(URL, username, formattedTeams, false) //first pass; call returns any unconfirmed teams
-			.then(result => {
+			.then((result) => {
 				let unconfirmedTeams = result.data.teamsUnconfirmed;
 
-				if (unconfirmedTeams?.length <= 0) return; //skip hltv check if no unconfirmed teams
+				if (unconfirmedTeams.length <= 0) {
+					//skip hltv check if no unconfirmed teams
+					replyString = helpers.formatReply(username, 'add', teams);
+					console.log(`sending tweet: ${replyString}`);
+					setTimeout(function () {
+						T.post('statuses/update', {
+							status: replyString,
+						});
+					}, 5000);
+					return;
+				}
 
 				for (let x = 0; x < unconfirmedTeams.length; x++) {
 					var team = unconfirmedTeams[x].Team;
@@ -110,19 +123,38 @@ function process(tweet) {
 					hltvPromises.push(httpSvc.checkHltv(team));
 				}
 			})
-			.then(_ => {
+			.then((_) => {
 				if (hltvPromises.length <= 0) return; //if no promises, there's no unconfirmed teams. exit;
-				confirmedTeams = Promise.all(hltvPromises).then(result => {
-					console.log(
-						`Confirmed new team(s) exist: + ${JSON.stringify(result)}`
-					);
+				confirmedTeams = Promise.all(hltvPromises).then((result) => {
+					console.log(`Confirmed new team(s) exist: + ${JSON.stringify(result)}`);
 					httpSvc.addTeamsPost(URL, username, result, true);
+					replyString = helpers.formatReply(username, 'add', teams);
+					console.log(`sending tweet: ${replyString}`);
+					setTimeout(function () {
+						T.post('statuses/update', {
+							status: replyString,
+						});
+					}, 5000);
 				});
 			});
 	} else if (removeTeams) {
 		//if any teams are to be removed
 		postText = postText.substring(1, postText.length);
 		let teams = postText.split(',');
+		teams = teams.map((x) => x.trim());
+
+		if (postText.length == 0) {
+			//will be true for a tweet like "@csgomatchbot + "
+			let teams = []; //generate empty teams object to comply with formatReply standards. 'real' teams object has a length of 1 no matter what
+			replyString = helpers.formatReply(username, 'remove', teams);
+			console.log(`sending tweet: ${replyString}`);
+			setTimeout(function () {
+				T.post('statuses/update', {
+					status: replyString,
+				});
+			}, 5000);
+			return;
+		}
 
 		console.log(`These are the teams to be removed: ${JSON.stringify(teams)}`);
 
@@ -168,9 +200,7 @@ function process(tweet) {
 					)
 					.then(function (response) {
 						console.log(response.data);
-						console.log(
-							`Successfully unsubscribed ${username} from ${teams[x]}`
-						);
+						console.log(`Successfully unsubscribed ${username} from ${teams[x]}`);
 
 						setTimeout(function () {
 							T.post('statuses/update', {

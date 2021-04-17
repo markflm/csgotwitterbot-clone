@@ -27,46 +27,51 @@ const addTeamsPost = (URL, username, teamsToAdd, skipValidation) => {
 		});
 };
 
-const checkHltv = team => {
+const getTeamsForUser = (URL, username) => {
+	return axios
+		.get(`${URL}/user/${username}/getteams`, apiHeaders)
+		.then(function (response) {
+			// handle success
+			return response;
+		})
+		.catch(function (error) {
+			console.log(error);
+			return error;
+		});
+};
+const checkHltv = (team) => {
 	return new Promise((resolve, reject) => {
-		request(
-			`https://www.hltv.org/search?query=${team}`,
-			(error, response, html) => {
-				if (!error && response.statusCode === 200) {
-					const $ = cheerio.load(html);
-					const teamsDiv = $('.team-logo');
-					let hltvLink = teamsDiv[0].parentNode.attribs.href;
-					let hltvId = hltvLink.replace(/(^.+\D)(\d+)(\D.+$)/i, '$2'); //pull first sequence of numbers from link - will always be hltv team ID
-					console.log(
-						`Request made to https://www.hltv.org/search?query=${team}`
-					);
+		request(`https://www.hltv.org/search?query=${team}`, (error, response, html) => {
+			if (!error && response.statusCode === 200) {
+				const $ = cheerio.load(html);
+				const teamsDiv = $('.team-logo');
+				let hltvLink = teamsDiv[0].parentNode.attribs.href;
+				let hltvId = hltvLink.replace(/(^.+\D)(\d+)(\D.+$)/i, '$2'); //pull first sequence of numbers from link - will always be hltv team ID
+				console.log(`Request made to https://www.hltv.org/search?query=${team}`);
 
-					if (
-						teamsDiv &&
-						teamsDiv.length &&
-						teamsDiv[0].attribs &&
-						teamsDiv[0].attribs.title &&
-						teamsDiv[0].attribs.title.toString().toUpperCase() ===
-							team.toString().toUpperCase()
-					) {
-						console.log('This is a valid team name');
-						resolve({ Team: team, HltvTeamId: hltvId, Exists: true });
-						return;
-					} else {
-						console.log('This is not a valid team name');
-						resolve({ Team: team, Exists: false });
-						return;
-					}
+				if (
+					teamsDiv &&
+					teamsDiv.length &&
+					teamsDiv[0].attribs &&
+					teamsDiv[0].attribs.title &&
+					teamsDiv[0].attribs.title.toString().toUpperCase() === team.toString().toUpperCase()
+				) {
+					console.log('This is a valid team name');
+					resolve({ Team: team, HltvTeamId: hltvId, Exists: true });
+					return;
 				} else {
-					console.log(
-						`Could not make a request to https://www.hltv.org/search?query=${team}`
-					);
-					reject('hltv error');
+					console.log('This is not a valid team name');
+					resolve({ Team: team, Exists: false });
+					return;
 				}
+			} else {
+				console.log(`Could not make a request to https://www.hltv.org/search?query=${team}`);
+				reject('hltv error');
 			}
-		);
+		});
 	});
 };
 
 exports.addTeamsPost = addTeamsPost;
 exports.checkHltv = checkHltv;
+exports.getTeamsForUser = getTeamsForUser;
