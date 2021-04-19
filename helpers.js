@@ -61,7 +61,7 @@ const populateReply = (reply, teams, action) => {
 	teamsTxtTruncated = teamsTxtTruncated.substr(0, teamsTxtTruncated.length - 2); //cut off trailing comma & space
 	let truncatedTeamsCount = teams.length - i;
 	teamsTxtTruncated += ` and ${truncatedTeamsCount} others`; //pastebin link will go here
-	//action argument will be used to determine what the pastebin says e.g. "List of all teams subcribed to, added, etc."
+	//action argument will be used to determine what the pastebin says e.g. "List of all teams subscribed to, added, etc."
 	return teamsTxtTruncated;
 };
 

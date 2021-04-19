@@ -41,6 +41,7 @@ build/Release
 node_modules/
 jspm_packages/
 
+
 # TypeScript v1 declaration files
 typings/
 
@@ -110,3 +111,6 @@ replytest.js
 #API key credentials
 config.js
 apiHeaders.js
+
+#html test file and assets
+CS_GO Matches & livescore _ HLTV.org_files/

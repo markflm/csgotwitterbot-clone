@@ -53,6 +53,12 @@ const removeTeamsPost = (URL, username, teamsToRemove) => {
 			return error;
 		});
 };
+
+const getUsersForTeamMatch = (URL, teams) =>{
+
+	return axios.get(`${URL}/teams/${teams[0]}/${teams[1]}/getusers`, apiHeaders)
+	
+}
 const checkHltv = (team) => {
 	return new Promise((resolve, reject) => {
 		request(`https://www.hltv.org/search?query=${team}`, (error, response, html) => {
@@ -90,3 +96,4 @@ exports.addTeamsPost = addTeamsPost;
 exports.checkHltv = checkHltv;
 exports.getTeamsForUser = getTeamsForUser;
 exports.removeTeamsPost = removeTeamsPost;
+exports.getUsersForTeamMatch = getUsersForTeamMatch;

@@ -21,13 +21,13 @@ function bot() {
 		process(tweet);
 	});
 	// tweet = {
-	// 	text: `@csgomatchbot +OG, beeg beeg yoshi`,
+	// 	text: `@csgomatchbot !teams`,
 	// 	user: {
 	// 		name: 'mark kflm',
 	// 		screen_name: 'KiFFLoM'
 	// 	},
 	// };
-	//process(tweet) //simulates one run of the bot script with a hardcoded tweet. uncomment this & comment out mentionStream to use
+	// process(tweet) //simulates one run of the bot script with a hardcoded tweet. uncomment this & comment out mentionStream to use
 
 
 }
